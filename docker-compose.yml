@@ -30,7 +30,7 @@ services:
  
   docker-nginx:
     build: 
-     # context: ./nginx
+      context: ./nginx
     # defines the port mapping
     # corresponds to the "-p" flag
     ports:
