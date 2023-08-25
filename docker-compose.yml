@@ -1,0 +1,105 @@
+# tell docker what version of the docker-compose.yml we're using
+version: '3'
+
+# define the network
+
+networks:
+  web-network:
+
+# start the services section
+services:
+  # define the name of our service
+  # corresponds to the "--name" parameter
+  docker-php-cli:
+    # define the directory where the build should happened,
+    # i.e. where the Dockerfile of the service is located
+    # all paths are relative to the location of docker-compose.yml
+    build: 
+      context: ./php-cli
+    # reserve a tty - otherwise the container shuts down immediately
+    # corresponds to the "-i" flag
+    tty: true
+    # mount the app directory of the host to /var/www in the container
+    # corresponds to the "-v" option
+    volumes:
+      - ./app:/var/www
+    # connect to the network
+    # corresponds to the "--network" option
+    networks:
+      - web-network
+ 
+  docker-nginx:
+    build: 
+      context: ./nginx
+    # defines the port mapping
+    # corresponds to the "-p" flag
+    ports:
+      - "8081:80"
+    tty: true
+    volumes:
+      - ./app:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - web-network
+
+  docker-php-fpm:
+    build: 
+      context: ./php-fpm
+    tty: true 
+    links:
+      - docker-mysql
+    volumes:
+      - ./app:/var/www
+      #- ./php-fpm/conf.d:/usr/local/etc/php
+    networks:
+      - web-network
+      
+  docker-mysql:  
+     image: mysql:8.1
+     #build: ./mysql/
+     container_name: mysql-container4
+     expose:
+      - 3306
+     ports:
+      - 3306:3306
+     #volumes:
+      #- ./databases:/var/lib/mysql
+     volumes_from:
+      - mysql-data
+     environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: testdB
+      MYSQL_USER: adi
+      MYSQL_PASSWORD: ide@123!?
+     restart: always
+     networks:
+      - web-network
+     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb-use-native-aio=0
+     # MYSQL_DATABASE: zavrel_db
+     # MYSQL_USER: user
+     # MYSQL_PASSWORD: password
+
+  mysql-data:  
+     image: mysql:8.1
+     container_name: mysql-data-container4
+     volumes:
+      - /var/lib/mysql
+     command: "true"
+     networks:
+      - web-network
+
+  phpmyadmin:  
+     image: phpmyadmin/phpmyadmin
+     container_name: phpmyadmin-container4
+     ports:
+      - 8888:80
+     networks:
+      - web-network
+     environment:
+      PMA_HOST: docker-mysql
+      #PMA_USER: root
+      #PMA_PASSWORD: root
+      #PHP_UPLOAD_MAX_FILESIZE: 100MB
+     depends_on:
+      - docker-mysql
+   
