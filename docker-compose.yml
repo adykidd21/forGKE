@@ -67,10 +67,10 @@ services:
      volumes_from:
       - mysql-data
      environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: testdB
-      MYSQL_USER: adi
-      MYSQL_PASSWORD: ide@123!?
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=testdB
+      - MYSQL_USER=adi
+      - MYSQL_PASSWORD= ide@123!?
      restart: always
      networks:
       - web-network
